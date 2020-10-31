@@ -32,8 +32,6 @@ class GameWindow(tk.Tk):
         self.mainloop()
 
 
-
-
     def _draw_bg(self):
         self._canvas.create_rectangle(0, 0, self._conf.map_width, self._conf.map_height,
                                       fill=self._conf.color_bg, outline='')
