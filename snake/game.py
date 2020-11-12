@@ -65,3 +65,26 @@ class Game:
         if self._conf.mode == GameMode.n:
             window.show(self._game_main_normal)
 
+    def _game_main_normal(self):
+        if not self._map.has_food():
+            self._map.create_rand_food()
+
+        if self._pause or self._is_episode_end():
+            return
+
+        self._update_direc(self._solver.next_direc())
+
+        self._snake.move()
+
+    def _update_direc(self, new_direc):
+        self._snake.direc_next = new_direc
+        if self._pause:
+            self._snake.move()
+
+    def _is_episode_end(self):
+        return self._snake.dead or self._map.is_full()
+
+    def _on_exit(self):
+        if self._solver:
+            self._solver.close()
+

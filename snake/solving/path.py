@@ -32,7 +32,54 @@ class PathSolver(BaseSolver):
     def table(self):
         return self._table
 
+    def shortest_path_to_food(self):
+        return self.path_to(self.map.food, "shortest")
 
+    def longest_path_to_tail(self):
+        return self.path_to(self.snake.tail(), "longest")
+
+    def path_to(self, des, path_type):
+        ori_type = self.map.point(des).type
+        self.map.point(des).type = snakeloc.clear
+        if path_type == "shortest":
+            path = self.shortest_path_to(des)
+        elif path_type == "longest":
+            path = self.longest_path_to(des)
+        self.map.point(des).type = ori_type
+        return path
+
+    def shortest_path_to(self, des):
+        self._reset_table()
+
+        head = self.snake.head()
+        self._table[head.x][head.y].dist = 0
+        queue = deque()
+        queue.append(head)
+
+        while queue:
+            cur = queue.popleft()
+            if cur == des:
+                return self._build_path(head, des)
+            if cur == head:
+                first_direc = self.snake.direc
+            else:
+                first_direc = self._table[cur.x][cur.y].parent.direc_to(cur)
+            adjs = cur.all_adj()
+            random.shuffle(adjs)
+            for i, pos in enumerate(adjs):
+                if first_direc == cur.direc_to(pos):
+                    adjs[0], adjs[i] = adjs[i], adjs[0]
+                    break
+
+            for pos in adjs:
+                if self._is_valid(pos):
+                    adj_cell = self._table[pos.x][pos.y]
+                    if adj_cell.dist == sys.maxsize:
+                        adj_cell.parent = cur
+                        adj_cell.dist = self._table[cur.x][cur.y].dist + 1
+                        queue.append(pos)
+
+        return deque()
 
     def longest_path_to(self, des):
         path = self.shortest_path_to(des)
@@ -41,6 +88,39 @@ class PathSolver(BaseSolver):
 
         self._reset_table()
         cur = head = self.snake.head()
+
+        self._table[cur.x][cur.y].visit = True
+        for direc in path:
+            cur = cur.adj(direc)
+            self._table[cur.x][cur.y].visit = True
+
+        idx, cur = 0, head
+        while True:
+            cur_direc = path[idx]
+            nxt = cur.adj(cur_direc)
+
+            if cur_direc == Dicrections.l or cur_direc == Dicrections.r:
+                tests = [Dicrections.u, Dicrections.d]
+            elif cur_direc == Dicrections.u or cur_direc == Dicrections.d:
+                tests = [Dicrections.l, Dicrections.r]
+
+            extended = False
+            for test_direc in tests:
+                cur_test = cur.adj(test_direc)
+                nxt_test = nxt.adj(test_direc)
+                if self._is_valid(cur_test) and self._is_valid(nxt_test):
+                    self._table[cur_test.x][cur_test.y].visit = True
+                    self._table[nxt_test.x][nxt_test.y].visit = True
+                    path.insert(idx, test_direc)
+                    path.insert(idx + 2, Dicrections.opposite(test_direc))
+                    extended = True
+                    break
+
+            if not extended:
+                cur = nxt
+                idx += 1
+                if idx >= len(path):
+                    break
 
         return path
 
