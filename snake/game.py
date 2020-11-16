@@ -6,6 +6,8 @@ from enum import Enum, unique
 from snake.gen import Dicrections, Map, snakeloc, position, Snake
 from snake.gui import GameWindow
 from snake.solving import HamiltonSolver
+from snake.solving import GreedySolver
+
 
 @unique
 class GameMode(Enum):
@@ -15,19 +17,18 @@ class GameMode(Enum):
 class setup:
     def __init__(self):
         self.mode = GameMode.n
-        self.solver_name = 'HamiltonSolver'
-        self.map_rows = 20
+        self.solver_name = 'GreedySolver'
+        self.map_rows = 12
         self.map_cols = self.map_rows
-        self.map_width = 800
+        self.map_width = 400
         self.map_height = self.map_width
-        self.info_panel_width = 155
         self.window_width = self.map_width
         self.window_height = self.map_height
         self.grid_pad_ratio = 0.25
         self.show_grid_line = False
-        self.show_info_panel = False
         self.interval_draw = 50
         self.interval_draw_max = 200
+
 
         self.color_bg = '#2251b1'
         self.color_txt = '#F5F5F5'
@@ -48,17 +49,12 @@ class Game:
         self._map = Map(conf.map_rows + 2, conf.map_cols + 2)
         self._snake = Snake(self._map, conf.init_direc,
                             conf.init_bodies, conf.init_types)
-        self._pause = False
         self._solver = globals()[self._conf.solver_name](self._snake)
         self._episode = 1
 
     @property
     def snake(self):
         return self._snake
-
-    @property
-    def episode(self):
-        return self._episode
 
     def run(self):
         window = GameWindow("Snake", self._conf, self._map, self, self._on_exit)
@@ -69,17 +65,12 @@ class Game:
         if not self._map.has_food():
             self._map.create_rand_food()
 
-        if self._pause or self._is_episode_end():
-            return
-
         self._update_direc(self._solver.next_direc())
 
         self._snake.move()
 
     def _update_direc(self, new_direc):
         self._snake.direc_next = new_direc
-        if self._pause:
-            self._snake.move()
 
     def _is_episode_end(self):
         return self._snake.dead or self._map.is_full()

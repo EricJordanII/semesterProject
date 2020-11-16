@@ -8,8 +8,6 @@ class GameWindow(tk.Tk):
         super().__init__()
         super().title(title)
         super().configure(background=conf.color_bg)
-        if conf.show_info_panel:
-            super().geometry("%dx%d" % (conf.window_width, conf.window_height))
 
         self._conf = conf
         self._map = game_map
@@ -39,35 +37,6 @@ class GameWindow(tk.Tk):
                                  highlightthickness=0)
         self._canvas.pack(side=tk.LEFT)
 
-        if self._conf.show_info_panel:
-
-            self._info_var = tk.StringVar()
-
-            frm = tk.Frame(self, bg=self._conf.color_bg)
-            frm.pack(side=tk.RIGHT, anchor=tk.N)
-
-            tk.Message(frm,
-                       textvariable=self._info_var,
-                       fg=self._conf.color_txt,
-                       bg=self._conf.color_bg,
-                       font=self._conf.font_info).pack(side=tk.TOP, anchor=tk.W)
-
-            scale = tk.Scale(frm,
-                             font=self._conf.font_info,
-                             fg=self._conf.color_txt,
-                             bg=self._conf.color_bg,
-                             highlightthickness=0,
-                             from_=self._conf.interval_draw_max,
-                             to=0,
-                             orient=tk.HORIZONTAL,
-                             length=self._conf.window_width - self._conf.map_width,
-                             showvalue=False,
-                             tickinterval=0,
-                             resolution=1,
-                             command=self._update_speed)
-            scale.pack(side=tk.TOP, anchor=tk.W)
-            scale.set(self._conf.interval_draw)
-
     def _init_draw_params(self):
         pad_ratio = self._conf.grid_pad_ratio
         food_pad_ratio = 0.9 * pad_ratio
@@ -85,8 +54,6 @@ class GameWindow(tk.Tk):
         self._draw_bg()
         if self._conf.show_grid_line:
             self._draw_grid_line()
-        if self._conf.show_info_panel:
-            self._draw_info_panel()
         self._draw_map_contents()
         self.update()
 
